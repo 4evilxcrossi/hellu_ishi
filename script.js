@@ -4,8 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let slide = 0;
   const totalSlides = pages.length;
   let touchStartX = 0;
+  let isAnimating = false;
 
-  slider.style.width = `${totalSlides * 100}vw`;
+  slider.style.width = `${totalSlides * 100}%`;
 
   const dots = document.createElement("div");
   dots.className = "dots";
@@ -19,11 +20,17 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.appendChild(dots);
 
   function update() {
-    slider.style.transform = `translateX(-${slide * 100}vw)`;
+    slider.style.transform = `translateX(${-slide * 100}%)`;
     const allDots = dots.querySelectorAll(".dot");
     allDots.forEach((d, idx) => d.classList.toggle("active", idx === slide));
+    isAnimating = false;
   }
-  function goTo(idx) { slide = (idx + totalSlides) % totalSlides; update(); }
+  function goTo(idx) { 
+    if (isAnimating) return;
+    isAnimating = true;
+    slide = Math.max(0, Math.min(idx, totalSlides - 1));
+    update(); 
+  }
   function next() { goTo(slide + 1); }
   function prev() { goTo(slide - 1); }
 
@@ -33,11 +40,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
   });
 
-  slider.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; }, false);
+  slider.addEventListener("touchstart", (e) => { 
+    if (!isAnimating) touchStartX = e.touches[0].clientX;
+  }, false);
+  
   slider.addEventListener("touchend", (e) => {
+    if (isAnimating) return;
     const touchEndX = e.changedTouches[0].clientX;
-    if (touchStartX - touchEndX > 50) next();
-    else if (touchEndX - touchStartX > 50) prev();
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) next();
+      else prev();
+    }
   }, false);
 
   slider.focus();
