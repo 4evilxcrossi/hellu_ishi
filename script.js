@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const pages = Array.from(document.querySelectorAll("#slider .page"));
   let slide = 0;
   const totalSlides = pages.length;
+  let touchStartX = 0;
 
   slider.style.width = `${totalSlides * 100}vw`;
 
@@ -31,6 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); next(); }
     if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
   });
+
+  slider.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; }, false);
+  slider.addEventListener("touchend", (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    if (touchStartX - touchEndX > 50) next();
+    else if (touchEndX - touchStartX > 50) prev();
+  }, false);
 
   slider.focus();
   update();
