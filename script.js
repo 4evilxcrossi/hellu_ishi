@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let touchStartX = 0;
   let isAnimating = false;
 
-  slider.style.width = `${totalSlides * 100}%`;
+  slider.style.width = `${totalSlides * 100}vw`;
 
   const dots = document.createElement("div");
   dots.className = "dots";
@@ -20,19 +20,26 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.appendChild(dots);
 
   function update() {
-    slider.style.transform = `translateX(${-slide * 100}%)`;
+    slider.style.transform = `translateX(-${slide * 100}vw)`;
     const allDots = dots.querySelectorAll(".dot");
     allDots.forEach((d, idx) => d.classList.toggle("active", idx === slide));
-    isAnimating = false;
+    setTimeout(() => { isAnimating = false; }, 700);
   }
+  
   function goTo(idx) { 
     if (isAnimating) return;
     isAnimating = true;
     slide = Math.max(0, Math.min(idx, totalSlides - 1));
     update(); 
   }
-  function next() { goTo(slide + 1); }
-  function prev() { goTo(slide - 1); }
+  
+  function next() { 
+    if (slide < totalSlides - 1) goTo(slide + 1); 
+  }
+  
+  function prev() { 
+    if (slide > 0) goTo(slide - 1); 
+  }
 
   slider.addEventListener("click", next);
   slider.addEventListener("keydown", (e) => {
@@ -42,7 +49,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   slider.addEventListener("touchstart", (e) => { 
     if (!isAnimating) touchStartX = e.touches[0].clientX;
-  }, false);
+  }, { passive: true });
+  
+  slider.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+  }, { passive: false });
   
   slider.addEventListener("touchend", (e) => {
     if (isAnimating) return;
