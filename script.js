@@ -4,7 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let slide = 0;
   const totalSlides = pages.length;
   let touchStartX = 0;
+  let touchStartY = 0;
   let isAnimating = false;
+  let isTouchDevice = false;
 
   slider.style.width = `${totalSlides * 100}vw`;
 
@@ -41,29 +43,35 @@ document.addEventListener("DOMContentLoaded", () => {
     if (slide > 0) goTo(slide - 1); 
   }
 
-  slider.addEventListener("click", next);
+  slider.addEventListener("click", (e) => {
+    if (!isTouchDevice) next();
+  });
+  
   slider.addEventListener("keydown", (e) => {
     if (e.key === " " || e.key === "Enter" || e.key === "ArrowRight") { e.preventDefault(); next(); }
     if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
   });
 
   slider.addEventListener("touchstart", (e) => { 
-    if (!isAnimating) touchStartX = e.touches[0].clientX;
+    isTouchDevice = true;
+    if (!isAnimating) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
   }, { passive: true });
-  
-  slider.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-  }, { passive: false });
   
   slider.addEventListener("touchend", (e) => {
     if (isAnimating) return;
     const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX - touchEndX;
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) next();
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchStartX - touchEndX;
+    const diffY = Math.abs(touchStartY - touchEndY);
+    
+    if (Math.abs(diffX) > 50 && diffY < 50) {
+      if (diffX > 0) next();
       else prev();
     }
-  }, false);
+  }, { passive: true });
 
   slider.focus();
   update();
